@@ -1,11 +1,16 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Weight, MapPin, Activity } from "lucide-react";
-import { getDashboardData } from "@/app/actions";
 import { WeightChart } from "@/components/WeightChart";
+import { getDashboardDataLocal } from "@/lib/storage";
 
-export const dynamic = "force-dynamic";
+export default function Home() {
+  const [data, setData] = useState<any>(null);
 
-export default async function Home() {
-  const data = await getDashboardData();
+  useEffect(() => {
+    setData(getDashboardDataLocal());
+  }, []);
 
   return (
     <div className="p-4 space-y-6 mb-8">
@@ -52,7 +57,10 @@ export default async function Home() {
       </div>
 
       {/* Weight Chart */}
-      <WeightChart lastUpdated={data?.lastUpdated} />
+      <WeightChart
+        lastUpdated={data?.lastUpdated}
+        onUpdate={() => setData(getDashboardDataLocal())}
+      />
     </div>
   );
 }

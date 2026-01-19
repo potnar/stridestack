@@ -12,10 +12,10 @@ import {
 } from "recharts";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import {
-  getWeightHistory,
-  getEarliestWeightDate,
-  deleteWeightEntry,
-} from "@/app/actions";
+  getWeightHistoryLocal,
+  getEarliestWeightDateLocal,
+  deleteWeightEntryLocal,
+} from "@/lib/storage";
 import { useRouter } from "next/navigation";
 import {
   format,
@@ -42,9 +42,10 @@ interface WeightData {
 
 interface WeightChartProps {
   lastUpdated?: number;
+  onUpdate?: () => void;
 }
 
-export function WeightChart({ lastUpdated }: WeightChartProps) {
+export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>("DAILY");
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -55,7 +56,7 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
 
   useEffect(() => {
     async function init() {
-      const d = await getEarliestWeightDate();
+      const d = getEarliestWeightDateLocal();
       setEarliestDate(new Date(d));
     }
     init();
@@ -67,16 +68,14 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
       let start: Date, end: Date;
 
       if (viewMode === "DAILY") {
-        // Last 7 days
         start = startOfDay(subDays(currentDate, 6));
         end = endOfDay(currentDate);
-        const history = await getWeightHistory(start, end);
-        // Ensure 7 days are always present for consistency
+        const history = getWeightHistoryLocal(start, end);
         const dailyData: WeightData[] = [];
         for (let i = 0; i < 7; i++) {
           const day = startOfDay(addDays(start, i));
           const entry = history.find(
-            (h: WeightData) =>
+            (h: any) =>
               startOfDay(new Date(h.date)).getTime() === day.getTime(),
           );
           dailyData.push({
@@ -87,18 +86,16 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
         setData(dailyData);
         setHistoryList(history);
       } else {
-        // Weekly view - last 4 weeks average
         const endOfCurrentPeriod = endOfWeek(currentDate, { weekStartsOn: 1 });
         const startOfPeriod = startOfWeek(subWeeks(endOfCurrentPeriod, 3), {
           weekStartsOn: 1,
         });
 
-        const history = await getWeightHistory(
+        const history = getWeightHistoryLocal(
           startOfPeriod,
           endOfCurrentPeriod,
         );
 
-        // Group by week and calculate average
         const weeklyData: WeightData[] = [];
         for (let i = 0; i < 4; i++) {
           const weekStart = startOfWeek(subWeeks(endOfCurrentPeriod, 3 - i), {
@@ -106,7 +103,7 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
           });
           const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
 
-          const weekEntries = history.filter((entry: WeightData) => {
+          const weekEntries = history.filter((entry: any) => {
             const date = new Date(entry.date);
             return date >= weekStart && date <= weekEnd;
           });
@@ -114,7 +111,7 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
           if (weekEntries.length > 0) {
             const avg =
               weekEntries.reduce(
-                (acc: number, curr: WeightData) => acc + curr.weight,
+                (acc: number, curr: any) => acc + curr.weight,
                 0,
               ) / weekEntries.length;
             weeklyData.push({
@@ -129,7 +126,7 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
           }
         }
         setData(weeklyData);
-        setHistoryList([]); // Don't show individual entries in weekly view
+        setHistoryList([]);
       }
       setLoading(false);
     }
@@ -223,12 +220,10 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
 
   const handleDelete = async (id: string) => {
     if (confirm("Czy na pewno chcesz usunąć ten wpis?")) {
-      const res = await deleteWeightEntry(id);
-      if (res.success) {
-        router.refresh();
-      } else {
-        alert("Błąd podczas usuwania wpisu");
-      }
+      deleteWeightEntryLocal(id);
+      onUpdate?.();
+      // Trigger local fetch
+      setCurrentDate(new Date(currentDate)); // Force refresh
     }
   };
 
