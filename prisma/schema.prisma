@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id    String @id @default(uuid())
+  name  String
+  email String @unique
+}
+
+model WeightEntry {
+  id        String   @id @default(uuid())
+  date      DateTime
+  weight    Float
+  createdAt DateTime @default(now())
+}
+
+model ActivityEntry {
+  id        String   @id @default(uuid())
+  type      String   // 'RUN' | 'BIKE'
+  distance  Float    // km
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+}
