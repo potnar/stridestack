@@ -113,8 +113,10 @@ export function WeightChart({ lastUpdated }: WeightChartProps) {
 
           if (weekEntries.length > 0) {
             const avg =
-              weekEntries.reduce((acc, curr) => acc + curr.weight, 0) /
-              weekEntries.length;
+              weekEntries.reduce(
+                (acc: number, curr: WeightData) => acc + curr.weight,
+                0,
+              ) / weekEntries.length;
             weeklyData.push({
               date: weekStart.toISOString(),
               weight: Number(avg.toFixed(1)),
