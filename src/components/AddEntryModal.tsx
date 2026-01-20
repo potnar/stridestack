@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   X,
@@ -61,6 +61,11 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+
+  // Reset error when modal opens/closes
+  useEffect(() => {
+    setError(null);
+  }, [isOpen]);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
