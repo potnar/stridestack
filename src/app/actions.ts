@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 
 export async function addWeightEntry(weight: number, date?: string) {
+    if (!prisma) return { success: false, error: 'DB not connected' }
     try {
         await prisma.weightEntry.create({
             data: {
@@ -20,6 +21,7 @@ export async function addWeightEntry(weight: number, date?: string) {
 }
 
 export async function getEarliestWeightDate() {
+    if (!prisma) return null
     try {
         const firstEntry = await prisma.weightEntry.findFirst({
             orderBy: { date: 'asc' },
@@ -32,6 +34,7 @@ export async function getEarliestWeightDate() {
 }
 
 export async function addActivityEntry(type: string, distance: number, date?: string) {
+    if (!prisma) return { success: false, error: 'DB not connected' }
     try {
         await prisma.activityEntry.create({
             data: {
@@ -49,6 +52,7 @@ export async function addActivityEntry(type: string, distance: number, date?: st
 }
 
 export async function getDashboardData() {
+    if (!prisma) return null
     try {
         const [latestWeight, activities] = await Promise.all([
             prisma.weightEntry.findFirst({
@@ -80,6 +84,7 @@ export async function getDashboardData() {
 }
 
 export async function getWeightHistory(startDate: Date, endDate: Date) {
+    if (!prisma) return null
     try {
         const entries = await prisma.weightEntry.findMany({
             where: {
@@ -103,6 +108,7 @@ export async function getWeightHistory(startDate: Date, endDate: Date) {
 }
 
 export async function deleteWeightEntry(id: string) {
+    if (!prisma) return { success: false, error: 'DB not connected' }
     try {
         await prisma.weightEntry.delete({
             where: { id },

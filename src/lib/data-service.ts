@@ -1,36 +1,73 @@
 import * as db from '@/app/actions'
 import * as local from '@/lib/storage'
 
-// Use localStorage ONLY if NEXT_PUBLIC_DATA_SOURCE is explicitly 'localstorage'
-const useLocal = process.env.NEXT_PUBLIC_DATA_SOURCE === 'localstorage';
+// Helper to determine if we should fall back to local storage
+const shouldFallback = (result: any) => {
+  if (result === null) return true;
+  if (result && typeof result === 'object' && result.success === false && 
+     (result.error === 'DB not connected' || result.error === 'Failed to fetch dashboard data')) {
+    return true;
+  }
+  return false;
+}
 
 export const addWeightEntry = async (weight: number, date?: string) => {
-  if (useLocal) return local.addWeightEntryLocal(weight, date);
-  return await db.addWeightEntry(weight, date);
+  try {
+    const result = await db.addWeightEntry(weight, date);
+    if (shouldFallback(result)) return local.addWeightEntryLocal(weight, date);
+    return result;
+  } catch (error) {
+    console.warn("DB operation failed, falling back to local storage", error);
+    return local.addWeightEntryLocal(weight, date);
+  }
 }
 
 export const getEarliestWeightDate = async () => {
-  if (useLocal) return local.getEarliestWeightDateLocal();
-  const date = await db.getEarliestWeightDate();
-  return date.toISOString();
+  try {
+    const result = await db.getEarliestWeightDate();
+    if (result === null) return local.getEarliestWeightDateLocal();
+    return result.toISOString();
+  } catch (error) {
+    return local.getEarliestWeightDateLocal();
+  }
 }
 
 export const addActivityEntry = async (type: string, distance: number, date?: string) => {
-  if (useLocal) return local.addActivityEntryLocal(type, distance, date);
-  return await db.addActivityEntry(type, distance, date);
+  try {
+    const result = await db.addActivityEntry(type, distance, date);
+    if (shouldFallback(result)) return local.addActivityEntryLocal(type, distance, date);
+    return result;
+  } catch (error) {
+    return local.addActivityEntryLocal(type, distance, date);
+  }
 }
 
 export const getDashboardData = async () => {
-  if (useLocal) return local.getDashboardDataLocal();
-  return await db.getDashboardData();
+  try {
+    const result = await db.getDashboardData();
+    if (shouldFallback(result)) return local.getDashboardDataLocal();
+    return result;
+  } catch (error) {
+    return local.getDashboardDataLocal();
+  }
 }
 
 export const getWeightHistory = async (startDate: Date, endDate: Date) => {
-  if (useLocal) return local.getWeightHistoryLocal(startDate, endDate);
-  return await db.getWeightHistory(startDate, endDate);
+  try {
+    const result = await db.getWeightHistory(startDate, endDate);
+    if (shouldFallback(result)) return local.getWeightHistoryLocal(startDate, endDate);
+    return result;
+  } catch (error) {
+    return local.getWeightHistoryLocal(startDate, endDate);
+  }
 }
 
 export const deleteWeightEntry = async (id: string) => {
-  if (useLocal) return local.deleteWeightEntryLocal(id);
-  return await db.deleteWeightEntry(id);
+  try {
+    const result = await db.deleteWeightEntry(id);
+    if (shouldFallback(result)) return local.deleteWeightEntryLocal(id);
+    return result;
+  } catch (error) {
+    return local.deleteWeightEntryLocal(id);
+  }
 }
