@@ -15,6 +15,15 @@ export default function Home() {
 
   useEffect(() => {
     loadData();
+
+    const handleRefresh = () => {
+      console.log("Refresh event received");
+      loadData();
+    };
+
+    window.addEventListener("stridestack:refresh", handleRefresh);
+    return () =>
+      window.removeEventListener("stridestack:refresh", handleRefresh);
   }, []);
 
   return (

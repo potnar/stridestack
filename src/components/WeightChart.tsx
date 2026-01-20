@@ -221,6 +221,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
   const handleDelete = async (id: string) => {
     if (confirm("Czy na pewno chcesz usunąć ten wpis?")) {
       await deleteWeightEntry(id);
+      window.dispatchEvent(new CustomEvent("stridestack:refresh"));
       onUpdate?.();
       // Trigger local fetch
       setCurrentDate(new Date(currentDate)); // Force refresh

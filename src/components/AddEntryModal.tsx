@@ -285,9 +285,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
               const date = formData.get("date") as string;
               if (weight) {
                 await addWeightEntry(weight, date);
-                router.refresh();
-                router.replace("/");
-                router.refresh();
+                window.dispatchEvent(new CustomEvent("stridestack:refresh"));
               }
               onClose();
             }}
@@ -327,7 +325,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
               const date = formData.get("date") as string;
               if (type && distance) {
                 await addActivityEntry(type, distance, date);
-                router.refresh();
+                window.dispatchEvent(new CustomEvent("stridestack:refresh"));
               }
               onClose();
             }}
