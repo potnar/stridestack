@@ -58,6 +58,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [summary, setSummary] = useState<ActivitySummary | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
 
@@ -281,10 +282,19 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
           <form
             className="space-y-4"
             action={async (formData) => {
+              setError(null);
               const weight = parseFloat(formData.get("weight") as string);
               const date = formData.get("date") as string;
               if (weight) {
-                await addWeightEntry(weight, date);
+                const result = await addWeightEntry(weight, date);
+                if (
+                  result &&
+                  !result.success &&
+                  result.error === "ALREADY_EXISTS"
+                ) {
+                  setError("Waga na ten dzień została już wpisana!");
+                  return;
+                }
                 window.dispatchEvent(new CustomEvent("stridestack:refresh"));
               }
               onClose();
@@ -310,8 +320,16 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                 type="date"
                 defaultValue={new Date().toISOString().split("T")[0]}
                 className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-lg focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
+                onChange={() => setError(null)}
               />
             </div>
+
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-xl font-medium">
+                {error}
+              </div>
+            )}
+
             <button className="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-zinc-200 active:scale-[0.98] transition-all">
               Save Weight
             </button>

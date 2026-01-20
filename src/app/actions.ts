@@ -6,10 +6,32 @@ import { revalidatePath } from "next/cache"
 export async function addWeightEntry(weight: number, date?: string) {
     if (!prisma) return { success: false, error: 'DB not connected' }
     try {
+        const targetDate = date ? new Date(date) : new Date()
+        
+        // Setup start and end of the target day
+        const startOfDay = new Date(targetDate)
+        startOfDay.setHours(0, 0, 0, 0)
+        const endOfDay = new Date(targetDate)
+        endOfDay.setHours(23, 59, 59, 999)
+
+        // Check if entry already exists for this day
+        const existing = await prisma.weightEntry.findFirst({
+            where: {
+                date: {
+                    gte: startOfDay,
+                    lte: endOfDay
+                }
+            }
+        })
+
+        if (existing) {
+            return { success: false, error: 'ALREADY_EXISTS' }
+        }
+
         await prisma.weightEntry.create({
             data: {
                 weight,
-                date: date ? new Date(date) : new Date(),
+                date: targetDate,
             },
         })
         revalidatePath('/')

@@ -34,10 +34,24 @@ const saveStorage = <T>(key: string, data: T[]) => {
 
 export const addWeightEntryLocal = (weight: number, date?: string) => {
   const entries = getStorage<WeightEntry>(KEYS.WEIGHT)
+  const targetDate = date ? new Date(date) : new Date()
+  
+  // Format target date to YYYY-MM-DD for comparison
+  const targetDateString = targetDate.toISOString().split('T')[0]
+
+  const existing = entries.find(e => {
+    const entryDateString = new Date(e.date).toISOString().split('T')[0]
+    return entryDateString === targetDateString
+  })
+
+  if (existing) {
+    return { success: false, error: 'ALREADY_EXISTS' }
+  }
+
   const newEntry: WeightEntry = {
     id: crypto.randomUUID(),
     weight,
-    date: date ? new Date(date).toISOString() : new Date().toISOString(),
+    date: targetDate.toISOString(),
     createdAt: new Date().toISOString()
   }
   saveStorage(KEYS.WEIGHT, [...entries, newEntry])
