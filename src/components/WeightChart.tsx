@@ -12,10 +12,10 @@ import {
 } from "recharts";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import {
-  getWeightHistoryLocal,
-  getEarliestWeightDateLocal,
-  deleteWeightEntryLocal,
-} from "@/lib/storage";
+  getWeightHistory,
+  getEarliestWeightDate,
+  deleteWeightEntry,
+} from "@/lib/data-service";
 import { useRouter } from "next/navigation";
 import {
   format,
@@ -56,7 +56,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
 
   useEffect(() => {
     async function init() {
-      const d = getEarliestWeightDateLocal();
+      const d = await getEarliestWeightDate();
       setEarliestDate(new Date(d));
     }
     init();
@@ -70,7 +70,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
       if (viewMode === "DAILY") {
         start = startOfDay(subDays(currentDate, 6));
         end = endOfDay(currentDate);
-        const history = getWeightHistoryLocal(start, end);
+        const history = await getWeightHistory(start, end);
         const dailyData: WeightData[] = [];
         for (let i = 0; i < 7; i++) {
           const day = startOfDay(addDays(start, i));
@@ -91,7 +91,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
           weekStartsOn: 1,
         });
 
-        const history = getWeightHistoryLocal(
+        const history = await getWeightHistory(
           startOfPeriod,
           endOfCurrentPeriod,
         );
@@ -220,7 +220,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
 
   const handleDelete = async (id: string) => {
     if (confirm("Czy na pewno chcesz usunąć ten wpis?")) {
-      deleteWeightEntryLocal(id);
+      await deleteWeightEntry(id);
       onUpdate?.();
       // Trigger local fetch
       setCurrentDate(new Date(currentDate)); // Force refresh

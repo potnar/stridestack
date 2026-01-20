@@ -3,13 +3,18 @@
 import { useEffect, useState } from "react";
 import { Weight, MapPin, Activity } from "lucide-react";
 import { WeightChart } from "@/components/WeightChart";
-import { getDashboardDataLocal } from "@/lib/storage";
+import { getDashboardData } from "@/lib/data-service";
 
 export default function Home() {
   const [data, setData] = useState<any>(null);
 
+  const loadData = async () => {
+    const dashboardData = await getDashboardData();
+    setData(dashboardData);
+  };
+
   useEffect(() => {
-    setData(getDashboardDataLocal());
+    loadData();
   }, []);
 
   return (
@@ -57,10 +62,7 @@ export default function Home() {
       </div>
 
       {/* Weight Chart */}
-      <WeightChart
-        lastUpdated={data?.lastUpdated}
-        onUpdate={() => setData(getDashboardDataLocal())}
-      />
+      <WeightChart lastUpdated={data?.lastUpdated} onUpdate={loadData} />
     </div>
   );
 }

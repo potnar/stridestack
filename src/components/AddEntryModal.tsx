@@ -15,7 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { addWeightEntryLocal, addActivityEntryLocal } from "@/lib/storage";
+import { addWeightEntry, addActivityEntry } from "@/lib/data-service";
 import * as FitDecoderModule from "fit-decoder";
 import dynamic from "next/dynamic";
 
@@ -284,7 +284,9 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
               const weight = parseFloat(formData.get("weight") as string);
               const date = formData.get("date") as string;
               if (weight) {
-                addWeightEntryLocal(weight, date);
+                await addWeightEntry(weight, date);
+                router.refresh();
+                router.replace("/");
                 router.refresh();
               }
               onClose();
@@ -324,7 +326,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
               const distance = parseFloat(formData.get("distance") as string);
               const date = formData.get("date") as string;
               if (type && distance) {
-                addActivityEntryLocal(type, distance, date);
+                await addActivityEntry(type, distance, date);
                 router.refresh();
               }
               onClose();
