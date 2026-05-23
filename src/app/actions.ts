@@ -2,8 +2,9 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import type { Question, DashboardData, ActionResult } from "@/types"
 
-export async function addWeightEntry(weight: number, date?: string) {
+export async function addWeightEntry(weight: number, date?: string): Promise<ActionResult> {
     if (!prisma) return { success: false, error: 'DB not connected' }
     try {
         const targetDate = date ? new Date(date) : new Date()
@@ -55,7 +56,7 @@ export async function getEarliestWeightDate() {
     }
 }
 
-export async function addActivityEntry(type: string, distance: number, date?: string) {
+export async function addActivityEntry(type: string, distance: number, date?: string): Promise<ActionResult> {
     if (!prisma) return { success: false, error: 'DB not connected' }
     try {
         await prisma.activityEntry.create({
@@ -73,7 +74,7 @@ export async function addActivityEntry(type: string, distance: number, date?: st
     }
 }
 
-export async function getDashboardData() {
+export async function getDashboardData(): Promise<DashboardData | null> {
     if (!prisma) return null
     try {
         const [latestWeight, activities] = await Promise.all([
@@ -129,7 +130,7 @@ export async function getWeightHistory(startDate: Date, endDate: Date) {
     }
 }
 
-export async function deleteWeightEntry(id: string) {
+export async function deleteWeightEntry(id: string): Promise<ActionResult> {
     if (!prisma) return { success: false, error: 'DB not connected' }
     try {
         await prisma.weightEntry.delete({
@@ -141,14 +142,6 @@ export async function deleteWeightEntry(id: string) {
         console.error('Failed to delete weight entry:', error)
         return { success: false, error: 'Failed to delete entry' }
     }
-}
-
-interface Question {
-    id: number
-    text: string
-    options: string[]
-    correctAnswer: number // index 0-3
-    explanation: string
 }
 
 export async function generateQuizQuestions(): Promise<Question[]> {

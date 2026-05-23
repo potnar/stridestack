@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Weight, MapPin, Activity } from "lucide-react";
 import { WeightChart } from "@/components/WeightChart";
 import { getDashboardData } from "@/lib/data-service";
+import type { DashboardData } from "@/types";
 
 export default function Home() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
 
   const loadData = async () => {
     const dashboardData = await getDashboardData();

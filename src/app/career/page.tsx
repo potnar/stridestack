@@ -4,15 +4,7 @@ import { useState } from 'react'
 import { CheckCircle2, Circle, BrainCircuit, Play, Loader2, ArrowRight, RefreshCcw } from "lucide-react";
 import { generateQuizQuestions } from '@/app/actions';
 import { cn } from '@/lib/utils';
-
-// Duplicate interface here or export shared type
-interface Question {
-  id: number
-  text: string
-  options: string[]
-  correctAnswer: number
-  explanation: string
-}
+import type { Question } from '@/types';
 
 export default function CareerPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'playing' | 'finished'>('idle');

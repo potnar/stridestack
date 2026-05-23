@@ -94,8 +94,8 @@ export function ActivitySummaryModal({ isOpen, onClose, summary }: ActivitySumma
         {/* Content */}
         <div className="p-6 space-y-6">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-white">Aktywność gotowa!</h2>
-            <p className="text-zinc-400 mt-1">{new Date(summary.date).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            <h2 className="text-2xl font-bold text-white">Activity saved!</h2>
+            <p className="text-zinc-400 mt-1">{new Date(summary.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -104,7 +104,7 @@ export function ActivitySummaryModal({ isOpen, onClose, summary }: ActivitySumma
                 <Ruler size={20} />
               </div>
               <div>
-                <p className="text-xs text-zinc-500 uppercase font-bold">Dystans</p>
+                <p className="text-xs text-zinc-500 uppercase font-bold">Distance</p>
                 <p className="text-lg font-bold text-white">{formattedDistance} km</p>
               </div>
             </div>
@@ -114,7 +114,7 @@ export function ActivitySummaryModal({ isOpen, onClose, summary }: ActivitySumma
                 <Timer size={20} />
               </div>
               <div>
-                <p className="text-xs text-zinc-500 uppercase font-bold">Czas</p>
+                <p className="text-xs text-zinc-500 uppercase font-bold">Time</p>
                 <p className="text-lg font-bold text-white">{formattedDuration}</p>
               </div>
             </div>
@@ -124,7 +124,7 @@ export function ActivitySummaryModal({ isOpen, onClose, summary }: ActivitySumma
                 <Zap size={20} />
               </div>
               <div>
-                <p className="text-xs text-zinc-500 uppercase font-bold">Śr. Tempo</p>
+                <p className="text-xs text-zinc-500 uppercase font-bold">Avg. Pace</p>
                 <p className="text-lg font-bold text-white">{summary.avgPace} /km</p>
               </div>
             </div>
@@ -134,7 +134,7 @@ export function ActivitySummaryModal({ isOpen, onClose, summary }: ActivitySumma
                 <Zap size={20} />
               </div>
               <div>
-                <p className="text-xs text-zinc-500 uppercase font-bold">Śr. Prędkość</p>
+                <p className="text-xs text-zinc-500 uppercase font-bold">Avg. Speed</p>
                 <p className="text-lg font-bold text-white">{summary.avgSpeed} km/h</p>
               </div>
             </div>
@@ -145,14 +145,14 @@ export function ActivitySummaryModal({ isOpen, onClose, summary }: ActivitySumma
               onClick={onClose}
               className="flex-1 px-6 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all"
             >
-              Zamknij
+              Close
             </button>
             <button 
               onClick={() => router.push('/activity/details')}
               className="flex-[2] px-6 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
             >
               <ExternalLink size={20} />
-              Zobacz szczegóły
+              View Details
             </button>
           </div>
         </div>

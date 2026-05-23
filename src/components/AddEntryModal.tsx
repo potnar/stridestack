@@ -297,7 +297,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                   !result.success &&
                   result.error === "ALREADY_EXISTS"
                 ) {
-                  setError("Waga na ten dzień została już wpisana!");
+                  setError("A weight entry for this day already exists!");
                   return;
                 }
                 window.dispatchEvent(new CustomEvent("stridestack:refresh"));
@@ -431,11 +431,11 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                 <div className="text-center">
                   <p className="text-sm font-medium text-white">
                     {loading
-                      ? "Przetwarzanie..."
-                      : "Kliknij lub przeciągnij plik .fit"}
+                      ? "Processing..."
+                      : "Click or drag a .fit file here"}
                   </p>
                   <p className="text-xs text-zinc-400 mt-1">
-                    Eksport z aplikacji Suunto
+                    Export from the Suunto app
                   </p>
                 </div>
               </div>
@@ -448,7 +448,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                   className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2"
                 >
                   <MapIcon size={20} />
-                  Pokaż podsumowanie
+                  Show Summary
                 </button>
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
@@ -459,7 +459,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                   ) : (
                     <ChevronDown size={18} />
                   )}
-                  {isExpanded ? "Ukryj odcinki" : "Pokaż odcinki"}
+                  {isExpanded ? "Hide segments" : "Show segments"}
                 </button>
               </div>
             )}
@@ -469,9 +469,9 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-white/5 text-zinc-400 font-medium sticky top-0">
                     <tr>
-                      <th className="px-3 py-2">Dystans</th>
-                      <th className="px-3 py-2 text-right">Tempo</th>
-                      <th className="px-3 py-2 text-right">Prędkość</th>
+                      <th className="px-3 py-2">Distance</th>
+                      <th className="px-3 py-2 text-right">Pace</th>
+                      <th className="px-3 py-2 text-right">Speed</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">

@@ -219,7 +219,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Czy na pewno chcesz usunąć ten wpis?")) {
+    if (confirm("Are you sure you want to delete this entry?")) {
       await deleteWeightEntry(id);
       window.dispatchEvent(new CustomEvent("stridestack:refresh"));
       onUpdate?.();
@@ -232,7 +232,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
     <div className="bg-card p-4 rounded-2xl">
       {/* Header with View Mode Toggle */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Postępy wagi</h2>
+        <h2 className="text-lg font-semibold">Weight Progress</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode("DAILY")}
@@ -309,15 +309,15 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
               labelFormatter={(value) => {
                 const date = new Date(value);
                 if (viewMode === "DAILY") {
-                  return `Data: ${format(date, "d.MM.yy")}`;
+                  return `Date: ${format(date, "d.MM.yy")}`;
                 } else {
                   const end = endOfWeek(date, { weekStartsOn: 1 });
-                  return `Tydzień: ${format(date, "d.MM.yy")} - ${format(end, "d.MM.yy")}`;
+                  return `Week: ${format(date, "d.MM.yy")} - ${format(end, "d.MM.yy")}`;
                 }
               }}
               formatter={(value: any) => [
                 `${value} kg`,
-                viewMode === "DAILY" ? "Waga" : "Średnia",
+                viewMode === "DAILY" ? "Weight" : "Average",
               ]}
             />
             <Line
@@ -336,7 +336,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
       {viewMode === "DAILY" && historyList.length > 0 && (
         <div className="mt-8 space-y-3">
           <h3 className="text-sm font-semibold text-zinc-400 px-1">
-            Ostatnie wpisy
+            Recent Entries
           </h3>
           <div className="space-y-2">
             {[...historyList].reverse().map((entry) => (

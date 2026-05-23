@@ -1,19 +1,6 @@
 'use client'
 
-export interface WeightEntry {
-  id: string
-  date: string
-  weight: number
-  createdAt: string
-}
-
-export interface ActivityEntry {
-  id: string
-  type: string
-  distance: number
-  date: string
-  createdAt: string
-}
+import type { WeightEntry, ActivityEntry, DashboardData, ActionResult } from '@/types'
 
 const KEYS = {
   WEIGHT: 'stridestack_weight_entries',
@@ -32,7 +19,7 @@ const saveStorage = <T>(key: string, data: T[]) => {
   localStorage.setItem(key, JSON.stringify(data))
 }
 
-export const addWeightEntryLocal = (weight: number, date?: string) => {
+export const addWeightEntryLocal = (weight: number, date?: string): ActionResult => {
   const entries = getStorage<WeightEntry>(KEYS.WEIGHT)
   const targetDate = date ? new Date(date) : new Date()
   
@@ -65,7 +52,7 @@ export const getEarliestWeightDateLocal = () => {
   return sorted[0].date
 }
 
-export const addActivityEntryLocal = (type: string, distance: number, date?: string) => {
+export const addActivityEntryLocal = (type: string, distance: number, date?: string): ActionResult => {
   const entries = getStorage<ActivityEntry>(KEYS.ACTIVITIES)
   const newEntry: ActivityEntry = {
     id: crypto.randomUUID(),
@@ -78,7 +65,7 @@ export const addActivityEntryLocal = (type: string, distance: number, date?: str
   return { success: true }
 }
 
-export const getDashboardDataLocal = () => {
+export const getDashboardDataLocal = (): DashboardData => {
   const weights = getStorage<WeightEntry>(KEYS.WEIGHT)
   const activities = getStorage<ActivityEntry>(KEYS.ACTIVITIES)
 
@@ -114,7 +101,7 @@ export const getWeightHistoryLocal = (startDate: Date, endDate: Date) => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 }
 
-export const deleteWeightEntryLocal = (id: string) => {
+export const deleteWeightEntryLocal = (id: string): ActionResult => {
   const entries = getStorage<WeightEntry>(KEYS.WEIGHT)
   const filtered = entries.filter(e => e.id !== id)
   saveStorage(KEYS.WEIGHT, filtered)

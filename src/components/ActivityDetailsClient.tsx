@@ -94,12 +94,12 @@ export function ActivityDetailsClient() {
             className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
           >
             <ChevronLeft size={24} />
-            <span className="font-medium">Powrót</span>
+            <span className="font-medium">Back</span>
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-lg font-bold">Szczegóły aktywności</h1>
+            <h1 className="text-lg font-bold">Activity Details</h1>
             <p className="text-xs text-zinc-500">
-              {new Date(summary.date).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {new Date(summary.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
           <div className="w-10" />
@@ -108,10 +108,10 @@ export function ActivityDetailsClient() {
 
       <div className="max-w-5xl mx-auto px-4 mt-6 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard icon={<Ruler className="text-blue-400" />} label="Dystans" value={`${formattedDistance} km`} />
-          <StatCard icon={<Timer className="text-emerald-400" />} label="Czas" value={duration} />
-          <StatCard icon={<Zap className="text-amber-400" />} label="Śr. Tempo" value={`${summary.avgPace} /km`} />
-          <StatCard icon={<Activity className="text-purple-400" />} label="Śr. Prędkość" value={`${summary.avgSpeed} km/h`} />
+          <StatCard icon={<Ruler className="text-blue-400" />} label="Distance" value={`${formattedDistance} km`} />
+          <StatCard icon={<Timer className="text-emerald-400" />} label="Time" value={duration} />
+          <StatCard icon={<Zap className="text-amber-400" />} label="Avg. Pace" value={`${summary.avgPace} /km`} />
+          <StatCard icon={<Activity className="text-purple-400" />} label="Avg. Speed" value={`${summary.avgSpeed} km/h`} />
         </div>
 
         <div className="bg-card rounded-3xl border border-white/10 overflow-hidden h-[400px] relative">
@@ -120,15 +120,15 @@ export function ActivityDetailsClient() {
 
         <div className="bg-card rounded-3xl border border-white/10 overflow-hidden">
           <div className="p-6 border-b border-white/5">
-            <h2 className="text-xl font-bold">Analiza co 100 metrów</h2>
+            <h2 className="text-xl font-bold">Analysis per 100 m</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-white/5 text-zinc-400 text-sm font-medium">
                 <tr>
-                  <th className="px-6 py-4">Odcinek</th>
-                  <th className="px-6 py-4 text-right">Tempo</th>
-                  <th className="px-6 py-4 text-right">Prędkość</th>
+                  <th className="px-6 py-4">Segment</th>
+                  <th className="px-6 py-4 text-right">Pace</th>
+                  <th className="px-6 py-4 text-right">Speed</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
