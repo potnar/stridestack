@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import type { Question, DashboardData, ActionResult } from "@/types"
+import { USER_HEIGHT_M } from "@/lib/config"
 
 export async function addWeightEntry(weight: number, date?: string): Promise<ActionResult> {
     if (!prisma) return { success: false, error: 'DB not connected' }
@@ -88,8 +89,7 @@ export async function getDashboardData(): Promise<DashboardData | null> {
         const runDistance = activities.filter((a: { type: string }) => a.type === 'RUN').reduce((acc: number, curr: { distance: number }) => acc + curr.distance, 0)
         const bikeDistance = activities.filter((a: { type: string }) => a.type === 'BIKE').reduce((acc: number, curr: { distance: number }) => acc + curr.distance, 0)
 
-        // BMI Calculation (Assuming constant height 180cm from requirements)
-        const heightM = 1.80
+        const heightM = USER_HEIGHT_M
         const bmi = latestWeight ? (latestWeight.weight / (heightM * heightM)).toFixed(1) : '--'
 
         return {

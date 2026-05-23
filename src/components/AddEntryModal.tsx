@@ -290,18 +290,16 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
               setError(null);
               const weight = parseFloat(formData.get("weight") as string);
               const date = formData.get("date") as string;
-              if (weight) {
-                const result = await addWeightEntry(weight, date);
-                if (
-                  result &&
-                  !result.success &&
-                  result.error === "ALREADY_EXISTS"
-                ) {
-                  setError("A weight entry for this day already exists!");
-                  return;
-                }
-                window.dispatchEvent(new CustomEvent("stridestack:refresh"));
+              if (!weight || isNaN(weight) || weight <= 0) {
+                setError("Please enter a valid weight.");
+                return;
               }
+              const result = await addWeightEntry(weight, date);
+              if (result && !result.success && result.error === "ALREADY_EXISTS") {
+                setError("A weight entry for this day already exists!");
+                return;
+              }
+              window.dispatchEvent(new CustomEvent("stridestack:refresh"));
               onClose();
             }}
           >
@@ -346,10 +344,9 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
               const type = formData.get("type") as string;
               const distance = parseFloat(formData.get("distance") as string);
               const date = formData.get("date") as string;
-              if (type && distance) {
-                await addActivityEntry(type, distance, date);
-                window.dispatchEvent(new CustomEvent("stridestack:refresh"));
-              }
+              if (!type || !distance || isNaN(distance) || distance <= 0) return;
+              await addActivityEntry(type, distance, date);
+              window.dispatchEvent(new CustomEvent("stridestack:refresh"));
               onClose();
             }}
           >

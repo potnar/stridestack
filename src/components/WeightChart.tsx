@@ -57,7 +57,7 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
   useEffect(() => {
     async function init() {
       const d = await getEarliestWeightDate();
-      setEarliestDate(new Date(d));
+      if (d) setEarliestDate(new Date(d));
     }
     init();
   }, []);

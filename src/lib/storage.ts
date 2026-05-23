@@ -1,6 +1,7 @@
 'use client'
 
 import type { WeightEntry, ActivityEntry, DashboardData, ActionResult } from '@/types'
+import { USER_HEIGHT_M } from '@/lib/config'
 
 const KEYS = {
   WEIGHT: 'stridestack_weight_entries',
@@ -75,7 +76,7 @@ export const getDashboardDataLocal = (): DashboardData => {
   const runDistance = activities.filter(a => a.type === 'RUN').reduce((acc, curr) => acc + curr.distance, 0)
   const bikeDistance = activities.filter(a => a.type === 'BIKE').reduce((acc, curr) => acc + curr.distance, 0)
 
-  const heightM = 1.80
+  const heightM = USER_HEIGHT_M
   const bmi = latestWeight ? (latestWeight.weight / (heightM * heightM)).toFixed(1) : '--'
 
   return {
