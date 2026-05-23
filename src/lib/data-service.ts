@@ -1,13 +1,11 @@
 import * as db from '@/app/actions'
 import * as local from '@/lib/storage'
-import type { ActionResult } from '@/types'
-
 // Helper to determine if we should fall back to local storage
-const shouldFallback = (result: ActionResult | null | undefined): boolean => {
+const shouldFallback = (result: unknown): boolean => {
   if (result === null) return true;
-  if (result && typeof result === 'object' && result.success === false && 
-     (result.error === 'DB not connected' || result.error === 'Failed to fetch dashboard data')) {
-    return true;
+  if (result && typeof result === 'object' && 'success' in result && result.success === false) {
+    const err = (result as { error?: string }).error
+    return err === 'DB not connected' || err === 'Failed to fetch dashboard data'
   }
   return false;
 }
