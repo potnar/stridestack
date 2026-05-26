@@ -2,10 +2,12 @@
 
 import type { WeightEntry, ActivityEntry, DashboardData, ActionResult } from '@/types'
 import { USER_HEIGHT_M } from '@/lib/config'
+import { calculateBmi, getBmiCategory } from '@/lib/bmi'
 
 const KEYS = {
   WEIGHT: 'stridestack_weight_entries',
-  ACTIVITIES: 'stridestack_activity_entries'
+  ACTIVITIES: 'stridestack_activity_entries',
+  HEIGHT: 'stridestack_user_height',
 }
 
 // Helpers
@@ -57,7 +59,7 @@ export const addActivityEntryLocal = (type: string, distance: number, date?: str
   const entries = getStorage<ActivityEntry>(KEYS.ACTIVITIES)
   const newEntry: ActivityEntry = {
     id: crypto.randomUUID(),
-    type,
+    type: type as ActivityEntry['type'],
     distance,
     date: date ? new Date(date).toISOString() : new Date().toISOString(),
     createdAt: new Date().toISOString()
@@ -66,22 +68,37 @@ export const addActivityEntryLocal = (type: string, distance: number, date?: str
   return { success: true }
 }
 
+export const getUserHeightLocal = (): number => {
+  if (typeof window === 'undefined') return USER_HEIGHT_M
+  const stored = localStorage.getItem(KEYS.HEIGHT)
+  return stored ? parseFloat(stored) : USER_HEIGHT_M
+}
+
+export const updateUserHeightLocal = (heightM: number): ActionResult => {
+  if (typeof window === 'undefined') return { success: false, error: 'Not in browser' }
+  localStorage.setItem(KEYS.HEIGHT, heightM.toString())
+  return { success: true }
+}
+
 export const getDashboardDataLocal = (): DashboardData => {
   const weights = getStorage<WeightEntry>(KEYS.WEIGHT)
   const activities = getStorage<ActivityEntry>(KEYS.ACTIVITIES)
+  const heightM = getUserHeightLocal()
 
   const latestWeight = [...weights].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-  
+
   const totalDistance = activities.reduce((acc, curr) => acc + curr.distance, 0)
   const runDistance = activities.filter(a => a.type === 'RUN').reduce((acc, curr) => acc + curr.distance, 0)
   const bikeDistance = activities.filter(a => a.type === 'BIKE').reduce((acc, curr) => acc + curr.distance, 0)
 
-  const heightM = USER_HEIGHT_M
-  const bmi = latestWeight ? (latestWeight.weight / (heightM * heightM)).toFixed(1) : '--'
+  const bmiValue = latestWeight ? calculateBmi(latestWeight.weight, heightM) : '--'
+  const bmiCategory = latestWeight ? getBmiCategory(parseFloat(bmiValue)) : ''
 
   return {
     weight: latestWeight?.weight ?? '--',
-    bmi,
+    bmi: bmiValue,
+    bmiCategory,
+    userHeightM: heightM,
     totalDistance: Math.round(totalDistance),
     runDistance: Math.round(runDistance),
     bikeDistance: Math.round(bikeDistance),

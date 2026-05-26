@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "StrideStack",
-  description: "Track your fitness and career goals",
+  description: "Track your fitness progress",
   manifest: "/manifest.json",
 };
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Briefcase, Plus } from 'lucide-react'
+import { LayoutDashboard, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AddEntryModal } from '@/components/AddEntryModal'
 
@@ -33,16 +33,6 @@ export function BottomNav() {
             <Plus size={24} />
           </button>
 
-          <Link
-            href="/career"
-            className={cn(
-              "flex flex-col items-center gap-1",
-              pathname === "/career" ? "text-blue-500" : "text-gray-400"
-            )}
-          >
-            <Briefcase size={24} />
-            <span className="text-xs">Career</span>
-          </Link>
         </div>
       </div>
 

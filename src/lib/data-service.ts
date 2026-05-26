@@ -70,3 +70,13 @@ export const deleteWeightEntry = async (id: string) => {
     return local.deleteWeightEntryLocal(id);
   }
 }
+
+export const updateUserHeight = async (heightM: number) => {
+  try {
+    const result = await db.updateUserHeight(heightM);
+    if (shouldFallback(result)) return local.updateUserHeightLocal(heightM);
+    return result;
+  } catch (error) {
+    return local.updateUserHeightLocal(heightM);
+  }
+}

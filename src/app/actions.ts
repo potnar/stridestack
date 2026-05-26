@@ -2,8 +2,9 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import type { Question, DashboardData, ActionResult } from "@/types"
+import type { DashboardData, ActionResult } from "@/types"
 import { USER_HEIGHT_M } from "@/lib/config"
+import { calculateBmi, getBmiCategory } from "@/lib/bmi"
 
 export async function addWeightEntry(weight: number, date?: string): Promise<ActionResult> {
     if (!prisma) return { success: false, error: 'DB not connected' }
@@ -78,23 +79,27 @@ export async function addActivityEntry(type: string, distance: number, date?: st
 export async function getDashboardData(): Promise<DashboardData | null> {
     if (!prisma) return null
     try {
-        const [latestWeight, activities] = await Promise.all([
+        const [latestWeight, activities, user] = await Promise.all([
             prisma.weightEntry.findFirst({
                 orderBy: { date: 'desc' },
             }),
             prisma.activityEntry.findMany(),
+            prisma.user.findFirst(),
         ])
 
         const totalDistance = activities.reduce((acc: number, curr: { distance: number }) => acc + curr.distance, 0)
         const runDistance = activities.filter((a: { type: string }) => a.type === 'RUN').reduce((acc: number, curr: { distance: number }) => acc + curr.distance, 0)
         const bikeDistance = activities.filter((a: { type: string }) => a.type === 'BIKE').reduce((acc: number, curr: { distance: number }) => acc + curr.distance, 0)
 
-        const heightM = USER_HEIGHT_M
-        const bmi = latestWeight ? (latestWeight.weight / (heightM * heightM)).toFixed(1) : '--'
+        const heightM = user?.heightM ?? USER_HEIGHT_M
+        const bmiValue = latestWeight ? calculateBmi(latestWeight.weight, heightM) : '--'
+        const bmiCategory = latestWeight ? getBmiCategory(parseFloat(bmiValue)) : ''
 
         return {
             weight: latestWeight?.weight ?? '--',
-            bmi,
+            bmi: bmiValue,
+            bmiCategory,
+            userHeightM: heightM,
             totalDistance: Math.round(totalDistance),
             runDistance: Math.round(runDistance),
             bikeDistance: Math.round(bikeDistance),
@@ -130,6 +135,23 @@ export async function getWeightHistory(startDate: Date, endDate: Date) {
     }
 }
 
+export async function updateUserHeight(heightM: number): Promise<ActionResult> {
+    if (!prisma) return { success: false, error: 'DB not connected' }
+    try {
+        const user = await prisma.user.findFirst()
+        if (user) {
+            await prisma.user.update({ where: { id: user.id }, data: { heightM } })
+        } else {
+            await prisma.user.create({ data: { name: 'User', email: 'user@stridestack.app', heightM } })
+        }
+        revalidatePath('/')
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to update user height:', error)
+        return { success: false, error: 'Failed to update height' }
+    }
+}
+
 export async function deleteWeightEntry(id: string): Promise<ActionResult> {
     if (!prisma) return { success: false, error: 'DB not connected' }
     try {
@@ -144,101 +166,3 @@ export async function deleteWeightEntry(id: string): Promise<ActionResult> {
     }
 }
 
-export async function generateQuizQuestions(): Promise<Question[]> {
-    const apiKey = process.env.OPENROUTER_API_KEY
-
-    if (!apiKey) {
-        console.warn("Missing OPENROUTER_API_KEY, returning mock data")
-        return MOCK_QUESTIONS
-    }
-
-    const prompt = `
-    Generate 5 recruitment interview questions for a Senior Fullstack Developer role.
-    Tech stack: Node.js, Next.js (App Router), React, PostgreSQL, Stripe, Tpay.
-    Focus on: Architecture, Security, Performance, and Advanced Patterns.
-    
-    Return ONLY valid JSON in the following format:
-    [
-      {
-        "id": 1,
-        "text": "Question text here?",
-        "options": ["Answer A", "Answer B", "Answer C", "Answer D"],
-        "correctAnswer": 0,
-        "explanation": "Why A is correct..."
-      }
-    ]
-    Do not wrap in markdown or code blocks. Just raw JSON.
-  `
-
-    try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                model: "google/gemini-2.0-flash-exp:free", // Using a likely free/cheap model, can be changed
-                messages: [
-                    { role: "user", content: prompt }
-                ]
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error("OpenRouter API Error:", data);
-            return MOCK_QUESTIONS;
-        }
-
-        const content = data.choices[0].message.content;
-        // Clean up potential markdown code blocks if the model behaves poorly
-        const cleanContent = content.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        return JSON.parse(cleanContent);
-
-    } catch (error) {
-        console.error("Failed to generate quiz:", error);
-        return MOCK_QUESTIONS;
-    }
-}
-
-const MOCK_QUESTIONS: Question[] = [
-    {
-        id: 1,
-        text: "Which pattern best prevents 'Waterfalling' in Next.js Server Components?",
-        options: [
-            "Using useEffect to fetch data",
-            "Parallel data fetching with Promise.all()",
-            "Using Redux for state management",
-            "Wrapping components in React.memo()"
-        ],
-        correctAnswer: 1,
-        explanation: "Parallel data fetching allows multiple independent requests to initiate simultaneously, reducing total load time."
-    },
-    {
-        id: 2,
-        text: "In PostgreSQL, what is the primary benefit of using an Index scan over a Sequential scan?",
-        options: [
-            "It always returns data sorted",
-            "It requires less CPU for small tables",
-            "It avoids reading the entire table for selective queries",
-            "It automatically compresses the data"
-        ],
-        correctAnswer: 2,
-        explanation: "Index scans allow directly locating specific rows without scanning the full table, drastically improving performance for selective queries."
-    },
-    {
-        id: 3,
-        text: "How should you securely handle Stripe Webhook events in a Next.js API route?",
-        options: [
-            "Trust the request body implicitly",
-            "Verify the signature header using the raw request body",
-            "Check the IP address of the sender",
-            "Use a secret query parameter"
-        ],
-        correctAnswer: 1,
-        explanation: "Stripe sends a signature header (stripe-signature) that must be verified against the raw request body to ensure the event was actually sent by Stripe."
-    }
-]

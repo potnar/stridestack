@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'StrideStack',
     short_name: 'StrideStack',
-    description: 'Track your weight, tasks, and career progress.',
+    description: 'Track your weight and fitness progress.',
     start_url: '/',
     display: 'standalone',
     background_color: '#000000',

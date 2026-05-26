@@ -7,9 +7,10 @@ datasource db {
 }
 
 model User {
-  id    String @id @default(uuid())
-  name  String
-  email String @unique
+  id      String @id @default(uuid())
+  name    String
+  email   String @unique
+  heightM Float  @default(1.80)
 }
 
 model WeightEntry {

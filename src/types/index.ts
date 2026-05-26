@@ -6,6 +6,8 @@ export interface ActionResult {
 export interface DashboardData {
   weight: number | string
   bmi: string
+  bmiCategory: string
+  userHeightM: number
   totalDistance: number
   runDistance: number
   bikeDistance: number
@@ -27,10 +29,3 @@ export interface ActivityEntry {
   createdAt: string
 }
 
-export interface Question {
-  id: number
-  text: string
-  options: string[]
-  correctAnswer: number // 0-3
-  explanation: string
-}
