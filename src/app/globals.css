@@ -1,30 +1,129 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #ededed;
-  --card: #1A1A1A;
-  --primary: #3B82F6;
+  --background:     #0a1628;
+  --surface:        rgba(34, 34, 34, 0.5);
+  --surface-raised: rgba(34, 34, 34, 0.8);
+  --foreground:     #F0EBE3;
+  --muted:          #5C5855;
+  --gold:           #C8A96E;
+  --border-subtle:  rgba(240, 235, 227, 0.08);
+  --border:         rgba(240, 235, 227, 0.18);
+  --border-strong:  rgba(240, 235, 227, 0.55);
+  --danger:         #E05444;
+  --success:        #5A9E6F;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-primary: var(--primary);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #000000;
-    --foreground: #ededed;
-  }
+  --color-background:    var(--background);
+  --color-surface:       var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-foreground:    var(--foreground);
+  --color-muted:         var(--muted);
+  --color-gold:          var(--gold);
+  --color-border-subtle: var(--border-subtle);
+  --color-border:        var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-danger:        var(--danger);
+  --color-success:       var(--success);
+  --font-sans:     var(--font-geist-sans);
+  --font-mono:     var(--font-geist-mono);
+  --font-display:  var(--font-anton);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@media (pointer: fine) {
+  *, *::before, *::after { cursor: none !important; }
+}
+
+/* Grain texture overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 150px 150px;
+  background-repeat: repeat;
+  mix-blend-mode: overlay;
+}
+
+@keyframes robotWobble {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  50%       { transform: rotate(3deg) translateY(-6px); }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), Arial, sans-serif;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-strong);
+  }
+
+  /* Reusable button style — graphite bg, cream border, cream text */
+  .btn-primary {
+    background: var(--surface-raised);
+    color: var(--foreground);
+    border: 1px solid var(--border-strong);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.875rem;
+    padding: 14px;
+    width: 100%;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:active { opacity: 0.75; }
+
+  /* Card with surface bg + subtle border */
+  .card-surface {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+  }
+
+  /* Form input */
+  .input-ui {
+    width: 100%;
+    background: var(--surface);
+    color: var(--foreground);
+    padding: 12px 16px;
+    font-size: 1rem;
+    outline: none;
+    border: 1px solid var(--border);
+    transition: background-color 0.15s;
+    color-scheme: dark;
+  }
+  .input-ui:focus { background: var(--surface-raised); }
+
+  /* Dashed upload area */
+  .border-dashed-ui {
+    border: 2px dashed var(--border);
+  }
+
+  /* Robot animation */
+  .robot-wobble {
+    animation: robotWobble 4s ease-in-out infinite;
+  }
 }

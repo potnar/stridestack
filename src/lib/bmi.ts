@@ -12,8 +12,8 @@ export function getBmiCategory(bmi: number): BmiCategory {
 }
 
 export const BMI_CATEGORY_COLORS: Record<BmiCategory, string> = {
-  Underweight: 'text-blue-400',
-  Normal: 'text-green-400',
-  Overweight: 'text-amber-400',
-  Obese: 'text-red-400',
+  Underweight: 'text-blue-600',
+  Normal: 'text-green-700',
+  Overweight: 'text-amber-600',
+  Obese: 'text-red-600',
 }

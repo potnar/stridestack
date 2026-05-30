@@ -16,7 +16,6 @@ import {
   getEarliestWeightDate,
   deleteWeightEntry,
 } from "@/lib/data-service";
-import { useRouter } from "next/navigation";
 import {
   format,
   startOfWeek,
@@ -46,7 +45,6 @@ interface WeightChartProps {
 }
 
 export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
-  const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>("DAILY");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [data, setData] = useState<WeightData[]>([]);
@@ -65,64 +63,37 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      let start: Date, end: Date;
-
       if (viewMode === "DAILY") {
-        start = startOfDay(subDays(currentDate, 6));
-        end = endOfDay(currentDate);
+        const start = startOfDay(subDays(currentDate, 6));
+        const end = endOfDay(currentDate);
         const history = await getWeightHistory(start, end);
         const dailyData: WeightData[] = [];
         for (let i = 0; i < 7; i++) {
           const day = startOfDay(addDays(start, i));
           const entry = history.find(
-            (h: any) =>
-              startOfDay(new Date(h.date)).getTime() === day.getTime(),
+            (h: any) => startOfDay(new Date(h.date)).getTime() === day.getTime(),
           );
-          dailyData.push({
-            date: day.toISOString(),
-            weight: entry ? entry.weight : (null as any),
-          });
+          dailyData.push({ date: day.toISOString(), weight: entry ? entry.weight : (null as any) });
         }
         setData(dailyData);
         setHistoryList(history);
       } else {
         const endOfCurrentPeriod = endOfWeek(currentDate, { weekStartsOn: 1 });
-        const startOfPeriod = startOfWeek(subWeeks(endOfCurrentPeriod, 3), {
-          weekStartsOn: 1,
-        });
-
-        const history = await getWeightHistory(
-          startOfPeriod,
-          endOfCurrentPeriod,
-        );
-
+        const startOfPeriod = startOfWeek(subWeeks(endOfCurrentPeriod, 3), { weekStartsOn: 1 });
+        const history = await getWeightHistory(startOfPeriod, endOfCurrentPeriod);
         const weeklyData: WeightData[] = [];
         for (let i = 0; i < 4; i++) {
-          const weekStart = startOfWeek(subWeeks(endOfCurrentPeriod, 3 - i), {
-            weekStartsOn: 1,
-          });
+          const weekStart = startOfWeek(subWeeks(endOfCurrentPeriod, 3 - i), { weekStartsOn: 1 });
           const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-
           const weekEntries = history.filter((entry: any) => {
             const date = new Date(entry.date);
             return date >= weekStart && date <= weekEnd;
           });
-
           if (weekEntries.length > 0) {
-            const avg =
-              weekEntries.reduce(
-                (acc: number, curr: any) => acc + curr.weight,
-                0,
-              ) / weekEntries.length;
-            weeklyData.push({
-              date: weekStart.toISOString(),
-              weight: Number(avg.toFixed(1)),
-            });
+            const avg = weekEntries.reduce((acc: number, curr: any) => acc + curr.weight, 0) / weekEntries.length;
+            weeklyData.push({ date: weekStart.toISOString(), weight: Number(avg.toFixed(1)) });
           } else {
-            weeklyData.push({
-              date: weekStart.toISOString(),
-              weight: null as any,
-            });
+            weeklyData.push({ date: weekStart.toISOString(), weight: null as any });
           }
         }
         setData(weeklyData);
@@ -130,92 +101,40 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
       }
       setLoading(false);
     }
-
     fetchData();
   }, [viewMode, currentDate, lastUpdated]);
 
-  const handlePrevious = () => {
-    if (viewMode === "DAILY") {
-      setCurrentDate(subDays(currentDate, 7));
-    } else {
-      setCurrentDate(subWeeks(currentDate, 1));
-    }
-  };
+  const handlePrevious = () => setCurrentDate(viewMode === "DAILY" ? subDays(currentDate, 7) : subWeeks(currentDate, 1));
 
   const handleNext = () => {
-    if (viewMode === "DAILY") {
-      const nextDate = addDays(currentDate, 7);
-      if (isAfter(nextDate, new Date())) {
-        setCurrentDate(new Date());
-      } else {
-        setCurrentDate(nextDate);
-      }
-    } else {
-      const nextDate = addWeeks(currentDate, 1);
-      if (isAfter(nextDate, new Date())) {
-        setCurrentDate(new Date());
-      } else {
-        setCurrentDate(nextDate);
-      }
-    }
+    const next = viewMode === "DAILY" ? addDays(currentDate, 7) : addWeeks(currentDate, 1);
+    setCurrentDate(isAfter(next, new Date()) ? new Date() : next);
   };
 
   const canGoNext = () => {
     const today = new Date();
-    if (viewMode === "DAILY") {
-      return (
-        isBefore(currentDate, today) &&
-        format(currentDate, "yyyy-MM-dd") !== format(today, "yyyy-MM-dd")
-      );
-    } else {
-      const currentWeekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-      const todayWeekEnd = endOfWeek(today, { weekStartsOn: 1 });
-      return isBefore(currentWeekEnd, todayWeekEnd);
-    }
+    if (viewMode === "DAILY") return isBefore(currentDate, today) && format(currentDate, "yyyy-MM-dd") !== format(today, "yyyy-MM-dd");
+    return isBefore(endOfWeek(currentDate, { weekStartsOn: 1 }), endOfWeek(today, { weekStartsOn: 1 }));
   };
 
   const canGoPrev = () => {
-    if (viewMode === "DAILY") {
-      // If the entire window (currentDate - 6 days) is before earliestDate, stop
-      const startOfWindow = subDays(currentDate, 6);
-      return isAfter(startOfWindow, earliestDate);
-    } else {
-      // If the rightmost week (currentDate) of the 4-week window is before earliestDate, stop
-      // Actually, we should be able to see the earliest entry.
-      // So if startOfWindow (currentDate - 3 weeks) is after earliestDate, we can still go back.
-      const endOfCurrentPeriod = endOfWeek(currentDate, { weekStartsOn: 1 });
-      const startOfPeriod = startOfWeek(subWeeks(endOfCurrentPeriod, 3), {
-        weekStartsOn: 1,
-      });
-      const earliestStartOfWeek = startOfWeek(earliestDate, {
-        weekStartsOn: 1,
-      });
-      return isAfter(startOfPeriod, earliestStartOfWeek);
-    }
+    if (viewMode === "DAILY") return isAfter(subDays(currentDate, 6), earliestDate);
+    const endOfCurrentPeriod = endOfWeek(currentDate, { weekStartsOn: 1 });
+    const startOfPeriod = startOfWeek(subWeeks(endOfCurrentPeriod, 3), { weekStartsOn: 1 });
+    return isAfter(startOfPeriod, startOfWeek(earliestDate, { weekStartsOn: 1 }));
   };
 
   const getDateRangeLabel = () => {
     if (viewMode === "DAILY") {
-      const start = subDays(currentDate, 6);
-      return `${format(start, "MMM d")} - ${format(currentDate, "MMM d, yyyy")}`;
-    } else {
-      const endOfCurrentWeek = endOfWeek(currentDate, { weekStartsOn: 1 });
-      const startOfPeriod = startOfWeek(subWeeks(endOfCurrentWeek, 3), {
-        weekStartsOn: 1,
-      });
-
-      const startMonth = format(startOfPeriod, "MMMM", { locale: pl });
-      const endMonth = format(endOfCurrentWeek, "MMMM", { locale: pl });
-      const year = format(endOfCurrentWeek, "yyyy");
-
-      const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
-      if (startMonth === endMonth) {
-        return `${capitalize(startMonth)} ${year}`;
-      } else {
-        return `${capitalize(startMonth)}/${capitalize(endMonth)} ${year}`;
-      }
+      return `${format(subDays(currentDate, 6), "MMM d")} – ${format(currentDate, "MMM d, yyyy")}`;
     }
+    const endOfCurrentWeek = endOfWeek(currentDate, { weekStartsOn: 1 });
+    const startOfPeriod = startOfWeek(subWeeks(endOfCurrentWeek, 3), { weekStartsOn: 1 });
+    const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    const startMonth = capitalize(format(startOfPeriod, "MMMM", { locale: pl }));
+    const endMonth = capitalize(format(endOfCurrentWeek, "MMMM", { locale: pl }));
+    const year = format(endOfCurrentWeek, "yyyy");
+    return startMonth === endMonth ? `${startMonth} ${year}` : `${startMonth}/${endMonth} ${year}`;
   };
 
   const handleDelete = async (id: string) => {
@@ -223,33 +142,30 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
       await deleteWeightEntry(id);
       window.dispatchEvent(new CustomEvent("stridestack:refresh"));
       onUpdate?.();
-      // Trigger local fetch
-      setCurrentDate(new Date(currentDate)); // Force refresh
+      setCurrentDate(new Date(currentDate));
     }
   };
 
+  const navBtnClass = "p-2 text-muted hover:text-foreground transition-colors disabled:opacity-20 disabled:cursor-not-allowed";
+
   return (
-    <div className="bg-card p-4 rounded-2xl">
-      {/* Header with View Mode Toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Weight Progress</h2>
-        <div className="flex gap-2">
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <p className="section-label">Weight Progress</p>
+        <div className="flex border border-border">
           <button
             onClick={() => setViewMode("DAILY")}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              viewMode === "DAILY"
-                ? "bg-blue-600 text-white"
-                : "bg-black/40 text-zinc-400 hover:text-white"
+            className={`px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+              viewMode === "DAILY" ? "bg-surface-raised text-foreground" : "text-muted hover:text-foreground"
             }`}
           >
             Daily
           </button>
           <button
             onClick={() => setViewMode("WEEKLY")}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              viewMode === "WEEKLY"
-                ? "bg-blue-600 text-white"
-                : "bg-black/40 text-zinc-400 hover:text-white"
+            className={`px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider border-l border-border transition-colors ${
+              viewMode === "WEEKLY" ? "bg-surface-raised text-foreground" : "text-muted hover:text-foreground"
             }`}
           >
             Weekly
@@ -257,110 +173,97 @@ export function WeightChart({ lastUpdated, onUpdate }: WeightChartProps) {
         </div>
       </div>
 
-      {/* Date Navigation */}
+      {/* Date navigation */}
       <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={handlePrevious}
-          disabled={!canGoPrev()}
-          className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft size={20} />
+        <button onClick={handlePrevious} disabled={!canGoPrev()} className={navBtnClass}>
+          <ChevronLeft size={18} />
         </button>
-        <span className="text-sm text-zinc-400">{getDateRangeLabel()}</span>
-        <button
-          onClick={handleNext}
-          disabled={!canGoNext()}
-          className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-        >
-          <ChevronRight size={20} />
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-muted">
+          {getDateRangeLabel()}
+        </span>
+        <button onClick={handleNext} disabled={!canGoNext()} className={navBtnClass}>
+          <ChevronRight size={18} />
         </button>
       </div>
 
       {/* Chart */}
       {loading ? (
-        <div className="h-64 flex items-center justify-center text-zinc-400">
+        <div className="h-56 flex items-center justify-center text-muted text-[10px] uppercase tracking-widest">
           Loading...
         </div>
       ) : data.length === 0 ? (
-        <div className="h-64 flex items-center justify-center text-zinc-400">
+        <div className="h-56 flex items-center justify-center text-muted text-[10px] uppercase tracking-widest">
           No data for this period
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-            <XAxis
-              dataKey="date"
-              tickFormatter={(value) => format(new Date(value), "d.MM.yy")}
-              stroke="#666"
-              style={{ fontSize: "10px" }}
-            />
-            <YAxis
-              stroke="#666"
-              style={{ fontSize: "12px" }}
-              domain={["dataMin - 1", "dataMax + 1"]}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#1A1A1A",
-                border: "1px solid #333",
-                borderRadius: "8px",
-              }}
-              labelFormatter={(value) => {
-                const date = new Date(value);
-                if (viewMode === "DAILY") {
-                  return `Date: ${format(date, "d.MM.yy")}`;
-                } else {
-                  const end = endOfWeek(date, { weekStartsOn: 1 });
-                  return `Week: ${format(date, "d.MM.yy")} - ${format(end, "d.MM.yy")}`;
-                }
-              }}
-              formatter={(value: any) => [
-                `${value} kg`,
-                viewMode === "DAILY" ? "Weight" : "Average",
-              ]}
-            />
-            <Line
-              type="monotone"
-              dataKey="weight"
-              stroke="#10B981"
-              strokeWidth={2}
-              dot={{ fill: "#10B981", r: 4, stroke: "#10B981", strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: "#10B981" }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="p-4 card-surface">
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="2 4" stroke="rgba(240, 235, 227, 0.06)" />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(v) => format(new Date(v), "d.MM")}
+                stroke="transparent"
+                tick={{ fill: "#5C5855", fontSize: 10 }}
+              />
+              <YAxis
+                stroke="transparent"
+                tick={{ fill: "#5C5855", fontSize: 11 }}
+                domain={["dataMin - 1", "dataMax + 1"]}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#191919",
+                  border: "1px solid rgba(240, 235, 227, 0.25)",
+                  borderRadius: 0,
+                  fontSize: 12,
+                }}
+                labelStyle={{ color: "#5C5855", textTransform: "uppercase", fontSize: 10, letterSpacing: "0.12em" }}
+                itemStyle={{ color: "#C8A96E", fontWeight: 700 }}
+                labelFormatter={(v) => {
+                  const d = new Date(v);
+                  return viewMode === "DAILY"
+                    ? format(d, "d.MM.yy")
+                    : `${format(d, "d.MM")} – ${format(endOfWeek(d, { weekStartsOn: 1 }), "d.MM.yy")}`;
+                }}
+                formatter={(v: any) => [`${v} kg`, viewMode === "DAILY" ? "Weight" : "Avg"]}
+              />
+              <Line
+                type="monotone"
+                dataKey="weight"
+                stroke="#C8A96E"
+                strokeWidth={2}
+                dot={{ fill: "#C8A96E", r: 3, stroke: "#C8A96E", strokeWidth: 2 }}
+                activeDot={{ r: 5, fill: "#C8A96E", stroke: "#111111", strokeWidth: 2 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       )}
 
-      {/* History List */}
+      {/* History list */}
       {viewMode === "DAILY" && historyList.length > 0 && (
-        <div className="mt-8 space-y-3">
-          <h3 className="text-sm font-semibold text-zinc-400 px-1">
-            Recent Entries
-          </h3>
-          <div className="space-y-2">
-            {[...historyList].reverse().map((entry) => (
-              <div
-                key={entry.id}
-                className="bg-black/40 rounded-xl p-3 flex items-center justify-between border border-white/5"
-              >
-                <div className="flex flex-col">
-                  <span className="text-white font-medium">
-                    {entry.weight} kg
-                  </span>
-                  <span className="text-xs text-zinc-500">
-                    {format(new Date(entry.date), "PPPP", { locale: pl })}
-                  </span>
-                </div>
-                <button
-                  onClick={() => entry.id && handleDelete(entry.id)}
-                  className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
+        <div className="mt-6 space-y-2">
+          <p className="section-label mb-3">Recent Entries</p>
+          {[...historyList].reverse().map((entry) => (
+            <div
+              key={entry.id}
+              className="card-surface flex items-center justify-between px-4 py-3"
+            >
+              <div>
+                <span className="font-bold text-foreground tabular-nums">{entry.weight} kg</span>
+                <p className="text-[10px] text-muted uppercase tracking-wider mt-0.5">
+                  {format(new Date(entry.date), "PPPP", { locale: pl })}
+                </p>
               </div>
-            ))}
-          </div>
+              <button
+                onClick={() => entry.id && handleDelete(entry.id)}
+                className="p-2 text-muted hover:text-danger transition-colors"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
