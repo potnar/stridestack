@@ -61,6 +61,12 @@ DATABASE_URL=          # PostgreSQL connection string; omit to use localStorage 
 OPENROUTER_API_KEY=    # OpenRouter key for AI quiz; omit to use mock questions
 ```
 
+## Working preferences
+
+- **Feature branches always** — never commit or push directly to `main`. Create `feat/<short-name>`, push, share Vercel preview URL, merge only after user confirms.
+- **Terse responses** — no trailing summaries of what was just done.
+- **No unnecessary comments** in code.
+
 ## Planned features (next up)
 
 1. **User height as DB setting** — replace `USER_HEIGHT_M` constant with a per-user value stored in the `User` model so BMI is accurate.
