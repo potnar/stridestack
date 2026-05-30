@@ -37,6 +37,10 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+button, [role="button"] {
+  border-radius: 4px;
+}
+
 @media (pointer: fine) {
   *, *::before, *::after { cursor: none !important; }
 }
@@ -87,6 +91,7 @@ body::after {
     background: var(--surface-raised);
     color: var(--foreground);
     border: 1px solid var(--border-strong);
+    border-radius: 4px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;

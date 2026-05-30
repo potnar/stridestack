@@ -129,7 +129,7 @@ export function AddEntryModal({ isOpen, onClose }: AddEntryModalProps) {
             <Weight size={15} /> Weight
           </button>
           <button onClick={() => setType("activity")} className={cn(tabBase, "border-l border-border", type === "activity" ? tabActive : tabInactive)}>
-            <CheckSquare size={15} /> Manual
+            <CheckSquare size={15} /> Sport
           </button>
           <button onClick={() => setType("suunto")} className={cn(tabBase, "border-l border-border", type === "suunto" ? tabActive : tabInactive)}>
             <Upload size={15} /> Suunto
